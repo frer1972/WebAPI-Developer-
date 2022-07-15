@@ -1,6 +1,7 @@
 package com.web.api.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Transaction getTransaction(int id) {
-        Transaction transaction = transactionDao.getOne(id);
-        transaction.setPoint(getPoints(transaction.getSale()));
-        return transaction;
+        Optional<Transaction> transaction = Optional.ofNullable(transactionDao.getOne(id));
+        if(transaction.isPresent()) {
+            transaction.get().setPoint(getPoints(transaction.get().getSale()));
+            return transaction.get();
+        }
+        return null;
     }
 
     @Override
