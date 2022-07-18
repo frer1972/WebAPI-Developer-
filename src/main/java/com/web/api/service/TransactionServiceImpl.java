@@ -59,28 +59,25 @@ public class TransactionServiceImpl implements TransactionService {
         List<TransactionMonth> transactionMonths = new ArrayList<>();
         transactions.sort(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate));
         transactions.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
-        
-        Map<Integer, List<Transaction>> transactionsList = transactions.stream().collect(Collectors.groupingBy(Transaction::getCustomerId));
-        
-        transactionsList.forEach((k,v) -> {
-            int size =  v.size();
+
+        Map<Integer, List<Transaction>> transactionsList = transactions.stream()
+                .collect(Collectors.groupingBy(Transaction::getCustomerId));
+
+        transactionsList.forEach((k, v) -> {
+            int size = v.size();
             long points = 0;
-            if(size < 3) {
-                points = v.stream().collect(Collectors.summingLong(Transaction::getPoint));
-            } else {
-                LocalDate maxDate = v.get(size -1 ).getDate();
-                LocalDate minDate = maxDate.minusMonths(3);
-                for(int i= 0; i < size; i++  ) {
-                    LocalDate date = v.get(i).getDate();
-                    if((maxDate.isAfter(date) || maxDate.equals(date)) && minDate.isBefore(date)) {
-                        points += v.get(i).getPoint();
-                    }              
+
+            LocalDate maxDate = v.get(size - 1).getDate();
+            LocalDate minDate = maxDate.minusMonths(3);
+            for (int i = 0; i < size; i++) {
+                LocalDate date = v.get(i).getDate();
+                if ((maxDate.isAfter(date) || maxDate.equals(date)) && minDate.isBefore(date)) {
+                    points += v.get(i).getPoint();
                 }
             }
-            transactionMonths.add(new TransactionMonth(k,points));
-        });       
-        
-        
+            transactionMonths.add(new TransactionMonth(k, points));
+        });
+
         return transactionMonths;
     }
 
