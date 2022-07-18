@@ -69,12 +69,14 @@ public class TransactionServiceImpl implements TransactionService {
 
             LocalDate maxDate = v.get(size - 1).getDate();
             LocalDate minDate = maxDate.minusMonths(3);
-            for (int i = 0; i < size; i++) {
-                LocalDate date = v.get(i).getDate();
+            
+            for(Transaction transaction : v) {
+                LocalDate date = transaction.getDate();
                 if ((maxDate.isAfter(date) || maxDate.equals(date)) && minDate.isBefore(date)) {
-                    points += v.get(i).getPoint();
-                }
+                  points += transaction.getPoint();
+              }
             }
+            
             transactionMonths.add(new TransactionMonth(k, points));
         });
 
