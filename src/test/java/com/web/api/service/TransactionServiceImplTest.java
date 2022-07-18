@@ -3,6 +3,7 @@ package com.web.api.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +27,8 @@ public class TransactionServiceImplTest {
     
     @Test 
     public void getAllTest() {
-        Transaction t1 = new Transaction(1,30,0);
-        Transaction t2 = new Transaction(11,120,0);
+        Transaction t1 = new Transaction(1,1,LocalDate.of(2022, 1, 3),30,0);
+        Transaction t2 = new Transaction(11,1,LocalDate.of(2022, 2, 3),120,0);
         
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(t1);
@@ -42,8 +43,8 @@ public class TransactionServiceImplTest {
     
     @Test 
     public void getSizeTest() {
-        Transaction t1 = new Transaction(1,30,0);
-        Transaction t2 = new Transaction(11,120,0);
+        Transaction t1 = new Transaction(1,1,LocalDate.of(2022, 1, 3),30,0);
+        Transaction t2 = new Transaction(11,1,LocalDate.of(2022, 2, 3),120,0);
         
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(t1);
@@ -58,7 +59,7 @@ public class TransactionServiceImplTest {
     
     @Test
     public void getTransactionTest() {
-        Transaction transaction = new Transaction(11,120,90);
+        Transaction transaction = new Transaction(11,1,LocalDate.of(2022, 1, 3),120,90);
         
         when(transactionDao.getOne(11)).thenReturn(transaction);
         
