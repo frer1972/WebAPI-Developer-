@@ -28,6 +28,24 @@ public class TransactionDaoImpl implements TransactionDao {
         transactions.put(9, new Transaction(9,99,0));
         transactions.put(10, new Transaction(10,101,0));
         transactions.put(11, new Transaction(11,120,0));
+        transactions.put(12, new Transaction(12,185,0));
+        transactions.put(13, new Transaction(13,322,0));
+        transactions.put(14, new Transaction(14,115,0));
+        transactions.put(15, new Transaction(15,1016,0));
+        transactions.put(16, new Transaction(16,1049,0));
+        transactions.put(17, new Transaction(17,982,0));
+        transactions.put(18, new Transaction(18,1097,0));
+        transactions.put(19, new Transaction(19,234,0));
+        transactions.put(20, new Transaction(20,63,0));
+        transactions.put(21, new Transaction(21,74,0));
+        transactions.put(22, new Transaction(22,50,0));
+        transactions.put(23, new Transaction(23,51,0));
+        transactions.put(24, new Transaction(24,93,0));
+        transactions.put(25, new Transaction(25,100,0));
+        transactions.put(26, new Transaction(26,127,0));
+        transactions.put(27, new Transaction(27,218,0));
+        transactions.put(28, new Transaction(28,467,0));
+        transactions.put(29, new Transaction(29,15,0));
     }
 
     @Override

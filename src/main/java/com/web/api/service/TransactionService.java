@@ -8,5 +8,4 @@ public interface TransactionService {
 
     Transaction getTransaction(int id);
     List<Transaction> getAllTransactions();
-    long getPoints(double value);
 }

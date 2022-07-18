@@ -20,7 +20,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Transaction getTransaction(int id) {
         Optional<Transaction> transaction = Optional.ofNullable(transactionDao.getOne(id));
-        if(transaction.isPresent()) {
+        if (transaction.isPresent()) {
             transaction.get().setPoint(getPoints(transaction.get().getSale()));
             return transaction.get();
         }
@@ -34,18 +34,15 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction.stream().collect(Collectors.toList());
     }
 
-    @Override
-    public long getPoints(double value) {
+    private long getPoints(double value) {
         long points = 0;
-        long diff = (long) (value - ConstantUtil.HUNDRED);
-        if (diff > 0) {
-            points += ConstantUtil.TWO_POINT * diff;
-        }
-        diff = (long) (value - ConstantUtil.FIFTY);
-        if (diff > 0) {
-            long numbers = diff / ConstantUtil.FIFTY;
-
-            points += ConstantUtil.ONE_POINT * numbers * ConstantUtil.FIFTY;
+        long balance = 0;
+        balance = (long) (value - ConstantUtil.FIFTY);
+        if (balance > ConstantUtil.FIFTY) {
+            long diff = balance - ConstantUtil.FIFTY;
+            points += (ConstantUtil.TWO_POINT * diff) + ConstantUtil.FIFTY;
+        } else if(balance > 0) {
+            points += balance;
         }
         return points;
     }
