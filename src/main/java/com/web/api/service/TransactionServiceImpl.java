@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getAllTransactions() {
         List<Transaction> transaction = transactionDao.getAll();
-        transaction.sort(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate));
+        transaction = transaction.stream().sorted(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate)).collect(Collectors.toList());
         transaction.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
         return transaction;
     }
@@ -60,31 +61,25 @@ public class TransactionServiceImpl implements TransactionService {
         transactions.sort(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate));
         transactions.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
 
-        Map<Integer, List<Transaction>> transactionsList = transactions.stream()
+        Map<Integer, List<Transaction>> transactionsMap = transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getCustomerId));
 
-        transactionsList.forEach((k, v) -> getCustomerTransaction(k,v,transactionMonths));
+        transactionsMap.forEach((customerId, transactionsList) -> getCustomerTransaction(customerId,transactionsList,transactionMonths));
 
         return transactionMonths;
     }
     
-    private void getCustomerTransaction(Integer customerId, List<Transaction> transacction, List<TransactionMonth> transactionMonths){
-        
-        int size = transacction.size();
-        long points = 0;
-
-        LocalDate maxDate = transacction.get(size - 1).getDate();
-        LocalDate minDate = maxDate.minusMonths(3);
-        
+    private void getCustomerTransaction(Integer customerId, List<Transaction> transacction, List<TransactionMonth> transactionMonths){        
+        long points = 0;        
+        Optional<LocalDate> maxDate = transacction.stream().max(Comparator.comparing(Transaction::getDate)).map(Transaction::getDate);       
+        LocalDate minDate = maxDate.get().minusMonths(3);
         for(Transaction transaction : transacction) {
             LocalDate date = transaction.getDate();
-            if ((maxDate.isAfter(date) || maxDate.equals(date)) && (minDate.isBefore(date) || minDate.equals(date))) {
+            if ((maxDate.get().isAfter(date) || maxDate.get().equals(date)) && (minDate.isBefore(date) || minDate.equals(date))) {
               points += transaction.getPoint();
           }
-        }
-        
-        transactionMonths.add(new TransactionMonth(customerId, points));
-        
+        }        
+        transactionMonths.add(new TransactionMonth(customerId, points));        
     }
 
 }
