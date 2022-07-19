@@ -57,15 +57,11 @@ public class TransactionServiceImpl implements TransactionService {
     public List<TransactionMonth> getPointsMonths() {
         List<Transaction> transactions = transactionDao.getAll();
         List<TransactionMonth> transactionMonths = new ArrayList<>();
-        transactions.sort(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate));
         transactions.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
-
         Map<Integer, List<Transaction>> transactionsMap = transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getCustomerId));
-
         transactionsMap.forEach((customerId, transactionsList) -> getCustomerTransaction(customerId,transactionsList,transactionMonths));
-
-        return transactionMonths;
+        return transactionMonths.stream().sorted(Comparator.comparing(TransactionMonth::getCustomerId)).collect(Collectors.toList());
     }
     
     private void getCustomerTransaction(Integer customerId, List<Transaction> transacction, List<TransactionMonth> transactionMonths){        
