@@ -63,24 +63,28 @@ public class TransactionServiceImpl implements TransactionService {
         Map<Integer, List<Transaction>> transactionsList = transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getCustomerId));
 
-        transactionsList.forEach((k, v) -> {
-            int size = v.size();
-            long points = 0;
-
-            LocalDate maxDate = v.get(size - 1).getDate();
-            LocalDate minDate = maxDate.minusMonths(3);
-            
-            for(Transaction transaction : v) {
-                LocalDate date = transaction.getDate();
-                if ((maxDate.isAfter(date) || maxDate.equals(date)) && minDate.isBefore(date)) {
-                  points += transaction.getPoint();
-              }
-            }
-            
-            transactionMonths.add(new TransactionMonth(k, points));
-        });
+        transactionsList.forEach((k, v) -> getCustomerTransaction(k,v,transactionMonths));
 
         return transactionMonths;
+    }
+    
+    private void getCustomerTransaction(Integer customerId, List<Transaction> transacction, List<TransactionMonth> transactionMonths){
+        
+        int size = transacction.size();
+        long points = 0;
+
+        LocalDate maxDate = transacction.get(size - 1).getDate();
+        LocalDate minDate = maxDate.minusMonths(3);
+        
+        for(Transaction transaction : transacction) {
+            LocalDate date = transaction.getDate();
+            if ((maxDate.isAfter(date) || maxDate.equals(date)) && (minDate.isBefore(date) || minDate.equals(date))) {
+              points += transaction.getPoint();
+          }
+        }
+        
+        transactionMonths.add(new TransactionMonth(customerId, points));
+        
     }
 
 }
