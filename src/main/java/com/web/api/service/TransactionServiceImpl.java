@@ -1,20 +1,26 @@
 package com.web.api.service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.web.api.core.Transaction;
-import com.web.api.core.TransactionMonth;
 import com.web.api.dao.TransactionDao;
+import com.web.api.dto.TransactionMonth;
 import com.web.api.util.constant.ConstantUtil;
+
+/**
+ * 
+ * @author fespinoza Service to generate the points per month.
+ *
+ */
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -35,7 +41,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getAllTransactions() {
         List<Transaction> transaction = transactionDao.getAll();
-        transaction = transaction.stream().sorted(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate)).collect(Collectors.toList());
+        // This return the Collection sorted by customeid and date, this has
+        // good performance since we use the resource of stream API. Reducing
+        // line of code.
+        transaction = transaction.stream()
+                .sorted(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate))
+                .collect(Collectors.toList());
         transaction.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
         return transaction;
     }
@@ -53,28 +64,54 @@ public class TransactionServiceImpl implements TransactionService {
         return points;
     }
 
+    /**
+     * The method is using java stream API giving a good performing to process
+     * the collections of objects
+     */
     @Override
     public List<TransactionMonth> getPointsMonths() {
         List<Transaction> transactions = transactionDao.getAll();
         List<TransactionMonth> transactionMonths = new ArrayList<>();
         transactions.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
+        // This line is performing because, We can group the data in only one
+        // line and also the degree of complexity is being reduced.
         Map<Integer, List<Transaction>> transactionsMap = transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getCustomerId));
-        transactionsMap.forEach((customerId, transactionsList) -> getCustomerTransaction(customerId,transactionsList,transactionMonths));
-        return transactionMonths.stream().sorted(Comparator.comparing(TransactionMonth::getCustomerId)).collect(Collectors.toList());
+        // It is performing forEach to interact in the collection API and
+        // generate the new values.
+        transactionsMap.forEach((customerId, transactionsList) -> getCustomerTransaction(customerId, transactionsList,
+                transactionMonths));
+        // This return the Collection sorted by customeid and month, this has
+        // good performance since we use the resource of stream API. Reducing
+        // line of code.
+        return transactionMonths.stream()
+                .sorted(Comparator.comparing(TransactionMonth::getCustomerId).thenComparing(TransactionMonth::getMonth))
+                .collect(Collectors.toList());
     }
-    
-    private void getCustomerTransaction(Integer customerId, List<Transaction> transacction, List<TransactionMonth> transactionMonths){        
-        long points = 0;        
-        Optional<LocalDate> maxDate = transacction.stream().max(Comparator.comparing(Transaction::getDate)).map(Transaction::getDate);       
-        LocalDate minDate = maxDate.get().minusMonths(3);
-        for(Transaction transaction : transacction) {
-            LocalDate date = transaction.getDate();
-            if ((maxDate.get().isAfter(date) || maxDate.get().equals(date)) && (minDate.isBefore(date) || minDate.equals(date))) {
-              points += transaction.getPoint();
-          }
-        }        
-        transactionMonths.add(new TransactionMonth(customerId, points));        
+
+    private void getCustomerTransaction(Integer customerId, List<Transaction> transacction,
+            List<TransactionMonth> transactionMonths) {
+        // Assigning the data a other List, the assignment is quick and easy.
+        List<TransactionMonth> transactionMonth = transacction.stream()
+                .map(p -> new TransactionMonth(p.getCustomerId(), p.getDate().getMonthValue(), p.getPoint()))
+                .collect(Collectors.toList());
+        // We don't have to worry for null pointer.
+        Optional<Integer> maxMonth = transactionMonth.stream().map(TransactionMonth::getMonth).reduce(Integer::max);
+        // This line is performing because, We can group the data in only one
+        // line and also the degree of complexity is being reduced.
+        Map<Integer, List<TransactionMonth>> mapTransactionMonth = transactionMonth.stream()
+                .collect(Collectors.groupingBy(TransactionMonth::getMonth));
+        mapTransactionMonth.forEach((month, transactionMonthList) -> {
+            long points = transactionMonthList.stream().map(TransactionMonth::getPoint).reduce(0l, Long::sum);
+            transactionMonths.add(new TransactionMonth(customerId, month, points));
+        });
+        // Stream API let us to collect in different kind of collection.
+        Set<Integer> months = transactionMonth.stream().map(TransactionMonth::getMonth).collect(Collectors.toSet());
+        for (int i = 1; i <= maxMonth.get(); i++) {
+            if (!months.contains(i)) {
+                transactionMonths.add(new TransactionMonth(customerId, i, 0));
+            }
+        }
     }
 
 }

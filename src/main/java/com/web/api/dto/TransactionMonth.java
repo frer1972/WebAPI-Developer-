@@ -1,4 +1,4 @@
-package com.web.api.core;
+package com.web.api.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +12,7 @@ import lombok.ToString;
 public class TransactionMonth {
     
     private int customerId;
+    private int month;
     private long point;
 
 }

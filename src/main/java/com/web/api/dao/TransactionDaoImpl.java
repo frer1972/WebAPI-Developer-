@@ -56,8 +56,7 @@ public class TransactionDaoImpl implements TransactionDao {
 
     
     @Override
-    public List<Transaction> getAll() {
-        
+    public List<Transaction> getAll() {        
         Collection<Transaction> collectionT = transactions.values();
         List<Transaction> listTransaction = collectionT.stream().collect(Collectors.toList());
         return listTransaction;

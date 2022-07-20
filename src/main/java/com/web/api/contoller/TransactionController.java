@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.web.api.core.Transaction;
-import com.web.api.core.TransactionMonth;
+import com.web.api.dto.TransactionMonth;
 import com.web.api.service.TransactionService;
 
 @RestController
