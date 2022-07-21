@@ -46,21 +46,24 @@ public class TransactionServiceImpl implements TransactionService {
         // line of code.
         transaction = transaction.stream()
                 .sorted(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate))
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
         transaction.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
+
         return transaction;
     }
 
     private long getPoints(double value) {
         long points = 0;
-        long balance = 0;
-        balance = (long) (value - ConstantUtil.FIFTY);
-        if (balance > ConstantUtil.FIFTY) {
-            long diff = balance - ConstantUtil.FIFTY;
-            points += (ConstantUtil.TWO_POINT * diff) + ConstantUtil.FIFTY;
-        } else if (balance > 0) {
-            points += balance;
+        long diff = 0;
+        diff = (long) (value - ConstantUtil.HUNDRED);
+        if (diff > 0) {
+            points += ConstantUtil.TWO_POINT * diff;
         }
+        diff = (long) (value - ConstantUtil.FIFTY);
+        if (diff > 0) {
+            long numbers = diff / ConstantUtil.FIFTY;
+            points += ConstantUtil.ONE_POINT * numbers * ConstantUtil.FIFTY;
+        }         
         return points;
     }
 
