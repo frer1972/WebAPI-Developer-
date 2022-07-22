@@ -28,31 +28,32 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private TransactionDao transactionDao;
 
+   
     @Override
-    public Transaction getTransaction(int id) {
-        Optional<Transaction> transaction = Optional.ofNullable(transactionDao.getOne(id));
-        if (transaction.isPresent()) {
-            transaction.get().setPoint(getPoints(transaction.get().getSale()));
-            return transaction.get();
-        }
-        return null;
-    }
-
-    @Override
-    public List<Transaction> getAllTransactions() {
-        List<Transaction> transaction = transactionDao.getAll();
-        // This return the Collection sorted by customeid and date, this has
-        // good performance since we use the resource of stream API. Reducing
-        // line of code.
+    public List<Transaction> getAllPointsByCustomersTransactions() {
+        List<Transaction> transaction = transactionDao.getAllTransactions();
+        
+        /*
+         * Ordering for customerid and date to present the data.
+         */
         transaction = transaction.stream()
                 .sorted(Comparator.comparing(Transaction::getCustomerId).thenComparing(Transaction::getDate))
                 .collect(Collectors.toUnmodifiableList());
-        transaction.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
+        
+        /*
+         * In this line of code we have to iterate the list to get the points for each customer transaction.
+        */
+        transaction.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));
 
         return transaction;
     }
-
-    private long getPoints(double value) {
+    
+    /**
+     * This method calculates the point for transaction. Method only used in this service.
+     * @param value
+     * @return points
+     */
+    private long getPointPerTransaction(double value) {
         long points = 0;
         long diff = 0;
         diff = (long) (value - ConstantUtil.HUNDRED);
@@ -67,49 +68,72 @@ public class TransactionServiceImpl implements TransactionService {
         return points;
     }
 
-    /**
-     * The method is using java stream API giving a good performing to process
-     * the collections of objects
-     */
+    
     @Override
-    public List<TransactionMonth> getPointsMonths() {
-        List<Transaction> transactions = transactionDao.getAll();
+    public List<TransactionMonth> getAllPointsByCustomersMonths() {
+        List<Transaction> transactions = transactionDao.getAllTransactions();
         List<TransactionMonth> transactionMonths = new ArrayList<>();
-        transactions.stream().forEach(p -> p.setPoint(getPoints(p.getSale())));
-        // This line is performing because, We can group the data in only one
-        // line and also the degree of complexity is being reduced.
+        transactions.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));
+        
+        /*
+         * The logic is to group by customer. we can obtain every transaction per month of each customer. 
+         */
         Map<Integer, List<Transaction>> transactionsMap = transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getCustomerId));
-        // It is performing forEach to interact in the collection API and
-        // generate the new values.
+        /*
+         * Calculating transactions per month for each customer.
+         */
         transactionsMap.forEach((customerId, transactionsList) -> getCustomerTransaction(customerId, transactionsList,
                 transactionMonths));
-        // This return the Collection sorted by customeid and month, this has
-        // good performance since we use the resource of stream API. Reducing
-        // line of code.
+        /*
+         * Sending report list sorted by customerid and month.
+         */
         return transactionMonths.stream()
                 .sorted(Comparator.comparing(TransactionMonth::getCustomerId).thenComparing(TransactionMonth::getMonth))
                 .collect(Collectors.toList());
     }
-
+    
+    
+    /**
+     * This method calculates the point for each customer month. Method only used in this service.
+     * @param customerId
+     * @param transacction
+     * @param transactionMonths
+     */
     private void getCustomerTransaction(Integer customerId, List<Transaction> transacction,
             List<TransactionMonth> transactionMonths) {
-        // Assigning the data a other List, the assignment is quick and easy.
+        
+        /*
+         * Getting transactions per customer
+         */
         List<TransactionMonth> transactionMonth = transacction.stream()
                 .map(p -> new TransactionMonth(p.getCustomerId(), p.getDate().getMonthValue(), p.getPoint()))
                 .collect(Collectors.toList());
-        // We don't have to worry for null pointer.
-        Optional<Integer> maxMonth = transactionMonth.stream().map(TransactionMonth::getMonth).reduce(Integer::max);
-        // This line is performing because, We can group the data in only one
-        // line and also the degree of complexity is being reduced.
+        /*
+         * Obtaining the max month of the customer transaction.
+         */
+        Optional<Integer> maxMonth = transactionMonth.stream().map(TransactionMonth::getMonth).reduce(Integer::max); 
+        /*
+         * Grouping the transactions of each month to total them.
+         */
         Map<Integer, List<TransactionMonth>> mapTransactionMonth = transactionMonth.stream()
                 .collect(Collectors.groupingBy(TransactionMonth::getMonth));
+        /*
+         * Getting the total per month.  
+         */
         mapTransactionMonth.forEach((month, transactionMonthList) -> {
             long points = transactionMonthList.stream().map(TransactionMonth::getPoint).reduce(0l, Long::sum);
             transactionMonths.add(new TransactionMonth(customerId, month, points));
         });
-        // Stream API let us to collect in different kind of collection.
+        
+        /*
+         * Collecting all months found. 
+         */
         Set<Integer> months = transactionMonth.stream().map(TransactionMonth::getMonth).collect(Collectors.toSet());
+        
+        /*
+         * Adding the missing months in the report list.
+         */
         for (int i = 1; i <= maxMonth.get(); i++) {
             if (!months.contains(i)) {
                 transactionMonths.add(new TransactionMonth(customerId, i, 0));

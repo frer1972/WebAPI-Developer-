@@ -14,23 +14,16 @@ import com.web.api.service.TransactionService;
 public class TransactionController {
     
     @Autowired
-    private TransactionService transactionService;
-    
-    /*
-     * @GetMapping("/{id}") public ResponseEntity<Transaction>
-     * getOneTransaction(@PathVariable("id") int id) { Optional<Transaction>
-     * transaction = Optional.ofNullable(transactionService.getTransaction(id));
-     * if(transaction.isEmpty()) { return ResponseEntity.badRequest().build(); }
-     * return ResponseEntity.ok().body(transaction.get()); }
-     */
+    private TransactionService transactionService;    
+   
     @GetMapping("/")
-    public List<Transaction> getAllTransactions(){
-        return transactionService.getAllTransactions();
+    public List<Transaction> getAllCustomerPointsByTransaction(){
+        return transactionService.getAllPointsByCustomersTransactions();
     }
     
     @GetMapping("/month")
-    public List<TransactionMonth> getAllTransactionsMonth(){
-        return transactionService.getPointsMonths();
+    public List<TransactionMonth> getAllCustomersPointsByMonths(){
+        return transactionService.getAllPointsByCustomersMonths();
     }
 
 }

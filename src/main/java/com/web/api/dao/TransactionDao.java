@@ -7,6 +7,6 @@ import com.web.api.core.Transaction;
 public interface TransactionDao {
     
     Transaction getOne(int id);
-    List<Transaction> getAll();
+    List<Transaction> getAllTransactions();
 
 }
