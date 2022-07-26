@@ -43,7 +43,9 @@ public class TransactionServiceImpl implements TransactionService {
         /*
          * In this line of code we have to iterate the list to get the points for each customer transaction.
         */
-        transaction.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));
+        //transaction.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));        
+        transaction = transaction.stream().map(p -> new Transaction(p.getId(), p.getCustomerId(), p.getDate(), p.getSale(), getPointPerTransaction(p.getSale())))
+                .collect(Collectors.toList());
 
         return transaction;
     }
@@ -73,7 +75,9 @@ public class TransactionServiceImpl implements TransactionService {
     public List<TransactionMonth> getAllPointsByCustomersMonths() {
         List<Transaction> transactions = transactionDao.getAllTransactions();
         List<TransactionMonth> transactionMonths = new ArrayList<>();
-        transactions.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));
+        //transactions.stream().forEach(p -> p.setPoint(getPointPerTransaction(p.getSale())));
+        transactions = transactions.stream().map(p -> new Transaction(p.getId(), p.getCustomerId(), p.getDate(), p.getSale(), getPointPerTransaction(p.getSale())))
+                .collect(Collectors.toList());
         
         /*
          * The logic is to group by customer. we can obtain every transaction per month of each customer. 
